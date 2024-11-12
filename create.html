@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사자의 턱 게시판 - 작성</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>글 작성</h1>
+
+        <!-- 글 작성 폼 -->
+        <form id="post-form">
+            <!-- 제목 입력 -->
+            <input 
+                type="text" 
+                id="post-title" 
+                placeholder="제목을 입력하세요" 
+                required 
+                class="full-width-input">
+            
+            <!-- 작성자 입력 -->
+            <input 
+                type="text" 
+                id="post-author" 
+                placeholder="작성자를 입력하세요" 
+                required 
+                class="short-input">
+            
+            <!-- 내용 입력 -->
+            <textarea 
+                id="post-content" 
+                placeholder="내용을 입력하세요" 
+                required 
+                class="large-textarea"></textarea>
+            
+        <div class="form-actions">
+            <button id="back-button" class="button-primary">← 목록으로 돌아가기</button>
+            <button type="submit" class="button-primary right-align">작성 완료</button>
+        </div>
+                
+    </div>
+
+    <script src="create.js"></script>
+</body>
+</html>

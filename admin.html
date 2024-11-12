@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사자의 턱 게시판 - 관리자</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>관리자 페이지</h1>
+
+        <!-- 게시판 목록 -->
+        <table class="board-table">
+            <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>작성일</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+            <tbody id="admin-post-list"></tbody>
+        </table>
+
+        <!-- 댓글 삭제 관리 -->
+        <h2>댓글 관리</h2>
+        <ul id="admin-comment-list" class="comment-list"></ul>
+
+        <button id="back-button" class="button-primary">← 목록으로 돌아가기</button>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

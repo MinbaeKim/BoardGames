@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사자의 턱 게시판 - 상세</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 뒤로가기 버튼 -->
+        <button id="back-button" class="button-primary">← 목록으로 돌아가기</button>
+
+        <!-- 글 제목 -->
+        <h2 id="detail-title"></h2>
+
+        <!-- 작성자 및 작성일 -->
+        <p id="detail-meta">
+            작성자: <span id="detail-author"></span> | 
+            작성일: <span id="detail-date"></span>
+        </p>
+
+        <!-- 글 내용 -->
+        <textarea id="detail-content" readonly></textarea>
+
+        <!-- 댓글 섹션 -->
+        <div class="comment-section">
+            <h3>댓글</h3>
+            <ul id="comment-list" class="comment-list"></ul>
+            <div id="pagination" class="pagination"></div>
+        
+            <!-- 댓글 입력 -->
+            <form id="comment-form">
+                <input type="text" id="comment-author" placeholder="작성자" class="comment-author" required>
+                <input type="text" id="comment-input" placeholder="댓글 입력" class="comment-input" required>
+                <button type="submit" class="comment-submit">댓글 작성</button>            </form>
+        </div>
+
+        <!-- 수정/삭제 버튼 -->
+        <div class="action-buttons">
+            <button id="edit-button" class="button-primary">수정</button>
+            <button id="delete-button" class="button-primary">삭제</button>
+        </div>
+    </div>
+
+    <script src="post.js"></script>
+</body>
+</html>
