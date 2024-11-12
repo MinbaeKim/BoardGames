@@ -1,4 +1,20 @@
-document.addEventListener('DOMContentLoaded', () => {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Firebase 초기화
+const firebaseConfig = {
+  apiKey: "AIzaSyD_OzqoWDbo1Gq5QLu2ckoFl3FyQ9scpa4",
+  authDomain: "board-game-e3961.firebaseapp.com",
+  projectId: "board-game-e3961",
+  storageBucket: "board-game-e3961.firebasestorage.app",
+  messagingSenderId: "809236948799",
+  appId: "1:809236948799:web:07621cfe11fbe838b6d58a",
+  measurementId: "G-ZB6FL5BP5P"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener('DOMContentLoaded', async () => {
     const backButton = document.getElementById('back-button');
     const detailTitle = document.getElementById('detail-title');
     const detailAuthor = document.getElementById('detail-author');
@@ -6,148 +22,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const detailContent = document.getElementById('detail-content');
     const editButton = document.getElementById('edit-button');
     const deleteButton = document.getElementById('delete-button');
-    const posts = JSON.parse(localStorage.getItem('posts')) || [];
-    const currentPostId = localStorage.getItem('currentPostId');
-    const commentForm = document.getElementById('comment-form');
-    const commentInput = document.getElementById('comment-input');
-    const commentList = document.getElementById('comment-list');
-    const commentAuthor = document.getElementById('comment-author');
-    const commentsPerPage = 10; // 한 페이지에 표시할 댓글 수
-    let currentPage = 1;
 
-    if (currentPostId === null) {
+    // 현재 글 ID 가져오기 (localStorage에 저장된 값 사용)
+    const currentPostId = localStorage.getItem('currentPostId');
+
+    if (!currentPostId) {
         alert('유효하지 않은 접근입니다.');
         window.location.href = 'index.html';
         return;
     }
 
-    const currentPost = posts.find(post => post.id == currentPostId);
+    // Firestore에서 게시글 데이터 가져오기
+    const fetchPost = async (postId) => {
+        try {
+            const docRef = doc(db, "posts", postId);
+            const docSnap = await getDoc(docRef);
 
-    // 상세 정보 렌더링
-    detailTitle.textContent = currentPost.title;
-    detailAuthor.textContent = currentPost.author || '익명';
-    detailDate.textContent = currentPost.date || 'N/A';
-    detailContent.textContent = currentPost.content;
+            if (docSnap.exists()) {
+                return docSnap.data();
+            } else {
+                alert("해당 글을 찾을 수 없습니다.");
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error("게시글 불러오기 실패:", error);
+            alert("데이터를 불러오는 중 오류가 발생했습니다.");
+            window.location.href = 'index.html';
+        }
+    };
+
+    // 글 상세 데이터 렌더링
+    const renderPost = (post) => {
+        detailTitle.textContent = post.title || "제목 없음";
+        detailAuthor.textContent = post.author || "익명";
+        detailDate.textContent = post.date || "날짜 없음";
+        detailContent.value = post.content || "내용 없음";
+    };
+
+    // 글 데이터 가져오기 및 렌더링
+    const post = await fetchPost(currentPostId);
+    if (post) {
+        renderPost(post);
+    }
 
     // 뒤로가기 버튼
     backButton.addEventListener('click', () => {
         window.location.href = 'index.html';
     });
 
-    // 수정 기능
-    editButton.addEventListener('click', () => {
-        const newTitle = prompt('새 제목을 입력하세요:', currentPost.title);
-        const newContent = prompt('새 내용을 입력하세요:', currentPost.content);
+    // 글 수정 버튼
+    editButton.addEventListener('click', async () => {
+        const newTitle = prompt('새 제목을 입력하세요:', detailTitle.textContent);
+        const newContent = prompt('새 내용을 입력하세요:', detailContent.value);
+
         if (newTitle && newContent) {
-            currentPost.title = newTitle;
-            currentPost.content = newContent;
-            localStorage.setItem('posts', JSON.stringify(posts));
-            alert('글이 수정되었습니다.');
-            detailTitle.textContent = newTitle;
-            detailContent.textContent = newContent;
+            try {
+                const docRef = doc(db, "posts", currentPostId);
+                await updateDoc(docRef, { title: newTitle, content: newContent });
+                alert('글이 수정되었습니다.');
+                detailTitle.textContent = newTitle;
+                detailContent.value = newContent;
+            } catch (error) {
+                console.error("글 수정 실패:", error);
+                alert("글 수정 중 오류가 발생했습니다.");
+            }
         } else {
             alert('수정이 취소되었습니다.');
         }
     });
 
-    // 삭제 기능
-    deleteButton.addEventListener('click', () => {
+    // 글 삭제 버튼
+    deleteButton.addEventListener('click', async () => {
         if (confirm('정말로 이 글을 삭제하시겠습니까?')) {
-            const index = posts.findIndex(post => post.id == currentPostId);
-            if (index !== -1) {
-                posts.splice(index, 1); // 글 삭제
-                localStorage.setItem('posts', JSON.stringify(posts));
+            try {
+                const docRef = doc(db, "posts", currentPostId);
+                await deleteDoc(docRef);
                 alert('글이 삭제되었습니다.');
                 window.location.href = 'index.html';
-            } else {
-                alert('글을 찾을 수 없습니다.');
+            } catch (error) {
+                console.error("글 삭제 실패:", error);
+                alert("글 삭제 중 오류가 발생했습니다.");
             }
         }
     });
-
-     // 댓글 렌더링 (페이지별로 표시)
-     const renderComments = () => {
-        commentList.innerHTML = '';
-        const comments = currentPost.comments || [];
-        const startIndex = (currentPage - 1) * commentsPerPage;
-        const endIndex = Math.min(startIndex + commentsPerPage, comments.length);
-
-        comments.slice(startIndex, endIndex).forEach(comment => {
-            const li = document.createElement('li');
-            li.textContent = comment;
-            commentList.appendChild(li);
-        });
- 
-
-        renderPagination(comments.length);
-    };
-
-    // 댓글 페이지네이션 렌더링
-    const renderPagination = (totalComments) => {
-        const paginationContainer = document.getElementById('pagination');
-        paginationContainer.innerHTML = ''; // 기존 버튼 제거
-
-        const totalPages = Math.ceil(totalComments / commentsPerPage);
-
-        // 이전 버튼
-        if (currentPage > 1) {
-            const prevButton = document.createElement('button');
-            prevButton.textContent = '이전';
-            prevButton.addEventListener('click', () => {
-                currentPage--;
-                renderComments();
-            });
-            paginationContainer.appendChild(prevButton);
-        }
-
-        // 다음 버튼
-        if (currentPage < totalPages) {
-            const nextButton = document.createElement('button');
-            nextButton.textContent = '다음';
-            nextButton.addEventListener('click', () => {
-                currentPage++;
-                renderComments();
-            });
-            paginationContainer.appendChild(nextButton);
-        }
-    };
-
-    // 댓글 작성 이벤트
-    const handleCommentSubmit = () => {
-        const author = commentAuthor.value.trim();
-        const text = commentInput.value.trim();
-        const date = new Date().toISOString().replace('T', ' ').split('.')[0]; // 연-월-일 시:분:초
-
-        if (author && text) {
-            currentPost.comments = currentPost.comments || [];
-            currentPost.comments.push({ author, text, date });
-            localStorage.setItem('posts', JSON.stringify(posts));
-            renderComments();
-            commentAuthor.value = ''; // 입력 칸 초기화
-            commentInput.value = ''; // 입력 칸 초기화
-        } else {
-            alert('작성자와 댓글 내용을 모두 입력해주세요!');
-        }
-    };
-
-    // 엔터 키로 댓글 작성
-    commentInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault(); // 폼 제출 방지
-            handleCommentSubmit();
-        }
-    });
-
-    // 폼 제출로 댓글 작성 (버튼 클릭)
-    commentForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleCommentSubmit();
-    });
-
-    // 뒤로가기 버튼
-    backButton.addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
-
-    renderComments();
 });
