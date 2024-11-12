@@ -272,3 +272,17 @@ body {
 .pagination button:hover {
     background-color: #0056b3;
 }
+
+
+/* 저작권 문구 스타일 */
+.footer {
+    position: fixed; /* 화면에 고정 */
+    bottom: 0; /* 하단에 배치 */
+    width: 100%; /* 페이지 전체 너비 */
+    text-align: center; /* 중앙 정렬 */
+    font-size: 14px; /* 글자 크기 */
+    color: #666; /* 글자 색상 */
+    background-color: #f9f9f9; /* 배경색 (선택) */
+    padding: 10px 0; /* 상하 여백 */
+    border-top: 1px solid #ddd; /* 상단 구분선 */
+}
