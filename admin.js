@@ -1,11 +1,51 @@
-document.addEventListener('DOMContentLoaded', () => {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Firebase 초기화
+const firebaseConfig = {
+  apiKey: "AIzaSyD_OzqoWDbo1Gq5QLu2ckoFl3FyQ9scpa4",
+  authDomain: "board-game-e3961.firebaseapp.com",
+  projectId: "board-game-e3961",
+  storageBucket: "board-game-e3961.firebasestorage.app",
+  messagingSenderId: "809236948799",
+  appId: "1:809236948799:web:07621cfe11fbe838b6d58a",
+  measurementId: "G-ZB6FL5BP5P"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener('DOMContentLoaded', async () => {
     const adminPostList = document.getElementById('admin-post-list');
-    const adminCommentList = document.getElementById('admin-comment-list');
     const backButton = document.getElementById('back-button');
-    const posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+    // Firestore에서 게시글 데이터 가져오기
+    const fetchPosts = async () => {
+        const posts = [];
+        try {
+            const querySnapshot = await getDocs(collection(db, "posts"));
+            querySnapshot.forEach((doc) => {
+                posts.push({ id: doc.id, ...doc.data() });
+            });
+        } catch (error) {
+            console.error("게시글 로드 실패:", error);
+        }
+        return posts;
+    };
+
+    // 게시글 삭제
+    const deletePost = async (postId) => {
+        try {
+            await deleteDoc(doc(db, "posts", postId));
+            alert("글이 삭제되었습니다.");
+            renderPosts(); // 삭제 후 목록 갱신
+        } catch (error) {
+            console.error("게시글 삭제 실패:", error);
+        }
+    };
 
     // 게시글 목록 렌더링
-    const renderPosts = () => {
+    const renderPosts = async () => {
+        const posts = await fetchPosts();
         adminPostList.innerHTML = '';
         posts.forEach((post, index) => {
             const row = document.createElement('tr');
@@ -19,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             adminPostList.appendChild(row);
         });
 
-        // 게시글 삭제
+        // 삭제 버튼 이벤트
         document.querySelectorAll('.delete-post-button').forEach(button => {
             button.addEventListener('click', (e) => {
                 const postId = e.target.dataset.id;
@@ -28,61 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // 댓글 관리 렌더링
-    const renderComments = () => {
-        adminCommentList.innerHTML = '';
-        posts.forEach(post => {
-            (post.comments || []).forEach((comment, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <div class="comment-content">${comment.text}</div>
-                    <div class="comment-meta">${comment.author || '익명'} | ${comment.date}</div>
-                    <button class="comment-delete-button" data-post-id="${post.id}" data-index="${index}">삭제</button>
-                `;
-                adminCommentList.appendChild(li);
-            });
-        });
-
-        // 댓글 삭제
-        document.querySelectorAll('.comment-delete-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const postId = e.target.dataset.postId;
-                const commentIndex = e.target.dataset.index;
-                deleteComment(postId, commentIndex);
-            });
-        });
-    };
-
-    // 게시글 삭제 함수
-    const deletePost = (postId) => {
-        const postIndex = posts.findIndex(post => post.id == postId);
-        if (postIndex !== -1) {
-            if (confirm('이 글을 삭제하시겠습니까?')) {
-                posts.splice(postIndex, 1);
-                localStorage.setItem('posts', JSON.stringify(posts));
-                alert('글이 삭제되었습니다.');
-                renderPosts();
-                renderComments();
-            }
-        }
-    };
-
-    // 댓글 삭제 함수
-    const deleteComment = (postId, commentIndex) => {
-        const post = posts.find(post => post.id == postId);
-        if (post && post.comments) {
-            post.comments.splice(commentIndex, 1);
-            localStorage.setItem('posts', JSON.stringify(posts));
-            alert('댓글이 삭제되었습니다.');
-            renderComments();
-        }
-    };
-
-    // 목록 페이지로 돌아가기
+    // 목록으로 돌아가기
     backButton.addEventListener('click', () => {
         window.location.href = 'index.html';
     });
 
     renderPosts();
-    renderComments();
 });
